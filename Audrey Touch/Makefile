@@ -32,7 +32,3 @@ libs:
 clean-libs:
 	cd $(LIBDAISY_DIR) && $(MAKE) clean
 	cd $(DAISYSP_DIR) && $(MAKE) clean
-
-.PHONY: copy-bin
-copy-bin: build/$(TARGET).elf
-	cp build/$(TARGET).bin $(TARGET).bin
