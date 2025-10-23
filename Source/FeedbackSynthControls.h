@@ -72,6 +72,7 @@ private:
     void initADCs(daisy::DaisySeed &hw);
     void registerParams(Engine &engine);
 
+    int scale = 0;
     bool drone_mode = false;
     float prev_val_env = 0.0f;
     float prev_val_body = 0.001f;
