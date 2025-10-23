@@ -112,21 +112,32 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
     params_.UpdateNormalized(Parameter::EchoDelayFeedback, 0.0f);
 
 
-    if (controlling_env){
-        if (fabsf(body_knob - prev_val_env) > 0.01f)
+    if (controlling_env) {
+        if(!env_knob_catched) {
+            if (fabsf(body_knob - env_target_val) < 0.02)
+                env_knob_catched = true;
+        }
+
+        if (env_knob_catched && fabsf(body_knob - prev_val_env) > 0.01)
         {
             params_.UpdateNormalized(Parameter::EnvelopeShape, body_knob);
             prev_val_env = body_knob;
         }
-    } else if (!controlling_env){
-        if (fabsf(body_knob - prev_val_body) > 0.01f)
+    }
+    else {
+        if(!env_knob_catched) {
+            if (fabsf(body_knob - env_target_val) < 0.02)
+                env_knob_catched = true;
+        }
+
+        if (env_knob_catched && fabsf(body_knob - prev_val_body) > 0.01)
         {
             body_knob_val = 1 - body_knob;
             _osc.SetFreq(1.0f + (body_knob * 7.0f));
             prev_val_body = body_knob;
         }
     }
-    
+        
 
     if (!lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val;}
     else if (lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val + (_osc.Process() * (0.05 + (0.07f * (1 - body_knob_val))));}
@@ -154,17 +165,28 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
 
     params_.UpdateNormalized(Parameter::FeedbackBody, body_val);
 
-    if (controlling_OutputVol){
-        if (fabsf(volume_knob - prev_val_vol) > 0.01f)
+    if (controlling_OutputVol) {
+        if(!vol_knob_catched) {
+            if (fabsf(volume_knob - vol_target_val) < 0.02)
+                vol_knob_catched = true;
+        }
+
+        if (vol_knob_catched && fabsf(volume_knob - prev_val_output) > 0.01)
         {
             params_.UpdateNormalized(Parameter::OutputVolume, volume_knob);
-            prev_val_vol = volume_knob;
+            prev_val_output = volume_knob;
         }
-    } else if (!controlling_OutputVol) {
-        if (fabsf(volume_knob - prev_val_freq) > 0.01f)
+    }
+    else {
+        if(!vol_knob_catched) {
+            if (fabsf(volume_knob - vol_target_val) < 0.02)
+                vol_knob_catched = true;
+        }
+
+        if (vol_knob_catched && fabsf(volume_knob - prev_val_input) > 0.01)
         {
             params_.UpdateNormalized(Parameter::InputVolume, volume_knob);
-            prev_val_freq = volume_knob;
+            prev_val_input = volume_knob;
         }
     }
 
@@ -191,24 +213,28 @@ void Controls::UpdateSlowRate(DaisySeed &hw) { //pads are updated at a slower ra
 
     if (touch_.IsTouched(11) && !drone_mode) {
         if(!controlling_env){
-            prev_val_env = body_knob;
+            env_knob_catched = false;
+            env_target_val = prev_val_env;
         }
         controlling_env = true;
     } else {
         if(controlling_env){
-            prev_val_body = body_knob;
+            env_knob_catched = false;
+            env_target_val = prev_val_body;
         }
         controlling_env = false;
     }
 
     if (touch_.IsTouched(10)) {
         if(!controlling_OutputVol){
-            prev_val_vol = volume_knob;
+            vol_knob_catched = false;
+            vol_target_val = prev_val_output;
         }
         controlling_OutputVol = true;
     } else {
         if(controlling_OutputVol){
-            prev_val_freq = volume_knob;
+            vol_knob_catched = false;
+            vol_target_val = prev_val_input;
         }
         controlling_OutputVol = false;
     }
@@ -301,7 +327,7 @@ void Controls::registerParams(Engine &engine) {
         std::bind(&Engine::SetStringPitch, &engine, _1), 0.2f);
 
     // Feedback Gain in dbFS
-    params_.Register(Parameter::FeedbackGain, -50.0f, -50.0f, 35.0f,
+    params_.Register(Parameter::FeedbackGain, -60.0f, -60.0f, 35.0f,
         std::bind(&Engine::SetFeedbackGain, &engine, _1));
 
     // Feedback body/delay in seconds

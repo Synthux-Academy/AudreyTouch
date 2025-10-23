@@ -74,10 +74,10 @@ private:
 
     bool drone_mode = false;
     float prev_val_env = 0.0f;
-    float prev_val_body = 0.0f;
+    float prev_val_body = 0.001f;
     bool controlling_env = false;
-    float prev_val_vol = 0.0f;
-    float prev_val_freq = 0.0f;
+    float prev_val_input = 0.5f;
+    float prev_val_output = 0.5f;
     bool controlling_OutputVol = false;
     float freq_shift = 0.0f;
     int range = 0;
@@ -95,6 +95,11 @@ private:
     float max_note = 88.0f;
     float body_knob = 0.0f;
     float volume_knob = 0.0f;
+
+    bool env_knob_catched = false;
+    bool vol_knob_catched = false;
+    float env_target_val = 0.0f;
+    float vol_target_val = 0.0f;
 
 };
 

@@ -1,18 +1,19 @@
-# Implementation of the Simple Touch examples in C++
+## 🪴 Audrey II Touch Faceplate
 
-## Purpose
+**Order the faceplate only:**  
+[➡️ Audrey II Touch Faceplate](https://synthux.myshopify.com/products/audrey-ii-touch-faceplate-only?utm_source=copyToPasteBoard&utm_medium=product-links&utm_content=web)
 
-The purpose of this effort is to reimplement the
-`daisyduino/simple-*-touch` examples using libDaisy and DaisySP as an
-alternative to Daisyduino.
+**Or get the full Simple Touch package**, including all faceplates — *Audrey, Bass, String, FX, and Blank*:  
+[🎛️ Order Simple Touch](https://www.synthux.academy/simple-synth/touch2)
 
-The most intresting changes can be seen in the use of the libDaisy Mpr121I2C for
-`simple-daisy-touch.h` and using 
-[GPIO](https://electro-smith.github.io/libDaisy/md_doc_2md_2__a1___getting-_started-_g_p_i_o.html)
-and [ADC](https://electro-smith.github.io/libDaisy/md_doc_2md_2__a4___getting-_started-_a_d_cs.html) for the digital and analog arduino reads respectively.
+---
 
-* This is an excellent intro to the platform: GPIO, serial printing, ADC
-[libDaisy ref docs](https://electro-smith.github.io/libDaisy/index.html)
+📘 **Manual coming soon!**
+
+![Audrey-Touch](https://github.com/user-attachments/assets/ead3868f-cd63-43c0-a0a0-303965cc6bd3)
+
+
+# Implementation of the Audrey II Touch in C++
 
 ## Setup
 
@@ -23,7 +24,7 @@ Install the DaisySP submodules
 
 ```bash
 git submodule update --init --recursive
-cd libdaisy/lib/DaisySP/
+cd lib/DaisySP/
 make
 cd ../libDaisy/
 make

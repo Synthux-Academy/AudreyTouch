@@ -3,8 +3,8 @@ TARGET = AudreyTouch
 USE_DAISYSP_LGPL = 1
 
 
-LIBDAISY_DIR = ../lib/libDaisy
-DAISYSP_DIR = ../lib/DaisySP
+LIBDAISY_DIR = lib/libDaisy
+DAISYSP_DIR = lib/DaisySP
 CMSIS_DSP_SRC_DIR = ${LIBDAISY_DIR}/Drivers/CMSIS-DSP/Source
 
 
@@ -24,7 +24,6 @@ CPP_SOURCES = \
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
-# Target per compilare le librerie se serve
 libs:
 	cd $(LIBDAISY_DIR) && $(MAKE)
 	cd $(DAISYSP_DIR) && $(MAKE)
