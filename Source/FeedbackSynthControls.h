@@ -55,7 +55,8 @@ private:
         EchoDelayFeedback,  // 9
         OutputVolume,       // 10
         InputVolume,        // 11
-        EnvelopeShape
+        EnvelopeShape,
+        WetLevel
     };
 
     using Parameters = ParameterRegistry<Parameter>;
@@ -79,7 +80,8 @@ private:
     bool controlling_env = false;
     float prev_val_input = 0.5f;
     float prev_val_output = 0.5f;
-    bool controlling_OutputVol = false;
+    int control_volmode = 0; // 0 = none, 1 = input, 2 = output
+    float control_volumes[3] = {0.0f, 0.0f, 0.0f};
     float freq_shift = 0.0f;
     int range = 0;
     float octave_shift = 0.0f;
