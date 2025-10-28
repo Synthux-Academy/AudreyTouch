@@ -170,8 +170,8 @@ void Engine::Process(float in, float &outL, float &outR) {
   sampR = 0.5f * (sampR + echoR);
 
   // Dry/wet level
-  outL = (in * (1.0f - wet_level)) + (sampL * wet_level);
-  outR = (in * (1.0f - wet_level)) + (sampR * wet_level);
+  outL = (inL * (1.0f - wet_level)) + (sampL * wet_level);
+  outR = (inR * (1.0f - wet_level)) + (sampR * wet_level);
 
   // ---> Output
   outL = outL * output_level_;

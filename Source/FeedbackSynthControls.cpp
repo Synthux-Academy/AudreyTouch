@@ -362,7 +362,7 @@ void Controls::registerParams(Engine &engine) {
 
     // set dry/wet mix
     params_.Register(Parameter::WetLevel, 0.5f, 0.0f, 1.0f,
-        std::bind(&Engine::SetWetLevel, &engine, _1), 0.05f, daisysp::Mapping::EXP);
+        std::bind(&Engine::SetWetLevel, &engine, _1));
 
     // Envelope shape
     params_.Register(Parameter::EnvelopeShape, 0.0f, 0.0f, 1.0f,
