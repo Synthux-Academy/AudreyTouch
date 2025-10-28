@@ -1,5 +1,7 @@
-## 🪴 Audrey II Touch Faceplate
+# 🪴 Audrey II Touch
+Audrey II is a horrorscape synthesizer used by film composers, sound designers and composers. 
 
+## 🪴 Audrey II Touch Faceplate
 **Order the faceplate only:**  
 [➡️ Audrey II Touch Faceplate](https://synthux.myshopify.com/products/audrey-ii-touch-faceplate-only?utm_source=copyToPasteBoard&utm_medium=product-links&utm_content=web)
 
@@ -13,14 +15,17 @@
 ![Audrey-Touch](https://github.com/user-attachments/assets/ead3868f-cd63-43c0-a0a0-303965cc6bd3)
 
 
-# Implementation of the Audrey II Touch in C++
+# Installing Audrey II Firmware on Simple Touch
+- Download the .bin file from this repository. 
+- Hold down BOOT and then press RESET, then release both buttons. This will put the Daisy into BOOT MODE (you can tell you did it right if the top LED stops flashing).
+- Upload the firmware via the [web flash tool](https://flash.daisy.audio/).
 
-## Setup
+# Building the Audrey Touch firmware
 
-See [DaisyWiki](https://github.com/electro-smith/DaisyWiki/wiki/1.-Setting-Up-Your-Development-Environment) for setting up your development
-enviornment.
-
-Install the DaisySP submodules
+## 1. Setup
+- Follow the [Daisy Developer Setup Guide]((https://daisy.audio/tutorials/cpp-dev-env/#follow-along-with-the-video-guide)) to install the required toolchain (ARM GCC, Make, etc.).
+- Clone this repository
+- Install the submodules via
 
 ```bash
 git submodule update --init --recursive
@@ -30,12 +35,15 @@ cd ../libDaisy/
 make
 ```
 
-## Build
-
-For each example directory do the following after 
-[Flashing](https://github.com/electro-smith/DaisyWiki/wiki/1.-Setting-Up-Your-Development-Environment#4-Run-the-Blink-Example)
-the Daisy via USB.
+## 2. Build
 
 ```bash
-make clean ; make ; make program-dfu
+make clean ; make;
 ```
+The resulting .bin file will appear in the build/ directory.
+## 3. Flash
+- To flash directly from your computer (via USB DFU mode):
+```bash
+make program-dfu
+```
+- OR use the [web flash tool](https://flash.daisy.audio/)
