@@ -260,21 +260,26 @@ void Controls::UpdateSlowRate(DaisySeed &hw) { //pads are updated at a slower ra
     octave_down_was = octave_down_pad;
     octave_up_was = octave_up_pad;
     
+    static bool scale_pad_pressed = false;
 
+    bool scale_pad = touch_.IsTouched(1);
+    if(scale_pad && !scale_pad_pressed) {
+        scale = (scale + 1) % 3;
+    }
+    scale_pad_pressed = scale_pad;
 
-    static const int scale[] = {0, 2, 4, 5, 9, 12, 14};
-    //static const int scaleB[] = {0, 5, 6, 9, 10, 12, 13};
-    //static const int scaleC[] = {0, 2, 3, 7, 9, 12, 14};
+    static const int scaleA[] = {0, 2, 4, 5, 9, 12, 14};
+    static const int scaleB[] = {0, 5, 6, 9, 10, 12, 13};
+    static const int scaleC[] = {0, 2, 3, 7, 9, 12, 14};
 
     for (int pad = 3; pad <= 9; ++pad) {
         if (touch_.IsTouched(pad)) {
             int note_index = pad - 3;
             float base_note = 16.0f;
 
-            //if(scale == 0){current_note_base = base_note + scaleA[note_index];}
-            //else if(scale == 1){current_note_base = base_note + scaleB[note_index];}
-            //else if(scale == 2){current_note_base = base_note + scaleC[note_index];}
-            current_note_base = base_note + scale[note_index];
+            if(scale == 0){current_note_base = base_note + scaleA[note_index];}
+            else if(scale == 1){current_note_base = base_note + scaleB[note_index];}
+            else if(scale == 2){current_note_base = base_note + scaleC[note_index];}
             any_pad_touched = true;
             break;
         }
