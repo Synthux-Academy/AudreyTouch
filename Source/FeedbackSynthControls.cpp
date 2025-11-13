@@ -92,11 +92,12 @@ void Controls::Init(DaisySeed &hw, Engine &engine) {
 void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
 
     float freq_knob = hw.adc.GetFloat(0);
-    float FeedbackGain = hw.adc.GetFloat(1);
+    /*float FeedbackGain = hw.adc.GetFloat(1);
     if (range == 0) {FeedbackGain = FeedbackGain * 0.44f;}
     else if (range == 1) {FeedbackGain = (FeedbackGain * 0.50f)+0.16f;}
     else if( range == 2) {FeedbackGain = (FeedbackGain * 0.7f)+0.3f;}
-    params_.UpdateNormalized(Parameter::FeedbackGain,       FeedbackGain);
+    params_.UpdateNormalized(Parameter::FeedbackGain,       FeedbackGain);*/
+    params_.UpdateNormalized(Parameter::FeedbackGain,       hw.adc.GetFloat(1));
     body_knob = hw.adc.GetFloat(2);
     params_.UpdateNormalized(Parameter::FeedbackLPFCutoff,  hw.adc.GetFloat(3));
     params_.UpdateNormalized(Parameter::FeedbackHPFCutoff,  hw.adc.GetFloat(4));
@@ -324,7 +325,7 @@ void Controls::registerParams(Engine &engine) {
         std::bind(&Engine::SetStringPitch, &engine, _1), 0.2f);
 
     // Feedback Gain in dbFS
-    params_.Register(Parameter::FeedbackGain, -60.0f, -60.0f, 35.0f,
+    params_.Register(Parameter::FeedbackGain, -60.0f, -60.0f, 12.0f,
         std::bind(&Engine::SetFeedbackGain, &engine, _1));
 
     // Feedback body/delay in seconds
