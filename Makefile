@@ -13,12 +13,13 @@ C_DEFS = -DTARGET_DAISY
 
 
 CPP_SOURCES = \
-	FeedbackSynth_main.cpp \
-	Source/BiquadFilters.cpp \
-	Source/FeedbackSynthControls.cpp \
-	Source/FeedbackSynthEngine.cpp \
-	Source/KarplusString.cpp \
-	Source/memory/sdram_alloc.cpp
+    FeedbackSynth_main.cpp \
+    Source/BiquadFilters.cpp \
+    Source/FeedbackSynthControls.cpp \
+    Source/FeedbackSynthEngine.cpp \
+    Source/KarplusString.cpp \
+    Source/DCBlock.cpp \
+    Source/memory/sdram_alloc.cpp
 
 # Core location
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core

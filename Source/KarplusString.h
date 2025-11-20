@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <daisysp.h>
+#include "DCBlock.h"
 
 namespace infrasonic
 {
@@ -63,7 +64,7 @@ class KarplusString
     float sample_rate_;
 
     daisysp::Tone iir_damping_filter_;
-    daisysp::DcBlock dc_blocker_;
+    infrasonic::DCBlock dc_blocker_;
     daisysp::CrossFade crossfade_;
 
     // Very crappy linear interpolation upsampler used for low pitches that
