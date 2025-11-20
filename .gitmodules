@@ -1,6 +1,6 @@
 [submodule "lib/DaisySP"]
 	path = lib/DaisySP
-	url = https://github.com/electro-smith/DaisySP.git
+	url = https://github.com/electro-smith/DaisySP/tree/7f67768eb22103e5f7743e709e090ac435a11fae.git
 [submodule "lib/libDaisy"]
 	path = lib/libDaisy
-	url = https://github.com/electro-smith/libDaisy.git
+	url = https://github.com/electro-smith/libDaisy/tree/694fc55a4892bc9411296f224ad96bba2bf44b67.git

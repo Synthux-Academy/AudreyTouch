@@ -42,7 +42,6 @@ class Engine {
 
         void SetOutputLevel(const float level);
         void SetInputLevel(const float level);
-        void SetWetLevel(const float level);
 
         void NoteOn();
         void NoteOff();
@@ -63,7 +62,6 @@ class Engine {
         float echo_send_ = 0.0f;
         float verb_mix_ = 0.0f;
         float output_level_ = 0.5f;
-        float wet_level = 0.5f;
         float input_level_ = 1.0f;
         bool drone = false;
 

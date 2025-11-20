@@ -133,7 +133,7 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
 
         if (env_knob_catched && fabsf(body_knob - prev_val_body) > 0.01)
         {
-            body_knob_val = 1 - body_knob;
+            body_knob_val = 1.0f - body_knob;
             _osc.SetFreq(1.0f + (body_knob * 7.0f));
             prev_val_body = body_knob;
         }
@@ -141,7 +141,7 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
         
 
     if (!lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val;}
-    else if (lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val + (_osc.Process() * (0.05 + (0.07f * (1 - body_knob_val))));}
+    else if (lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val + (_osc.Process() * (0.05 + (0.07f * (1.0f - body_knob_val))));}
     else if (lfo_switch_a.Read() && !lfo_switch_b.Read()) {
         static float prev_osc = 0.0f;
         static float held_val = 0.0f;
@@ -150,7 +150,7 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
         float curr_osc = _osc.Process();
         if ((prev_osc < 0.0f && curr_osc >= 0.0f) || (prev_osc > 0.0f && curr_osc <= 0.0f)) {
 
-            held_val = daisy::Random::GetFloat(body_knob_val - (0.05f + (0.07f * (1 - body_knob_val))), body_knob_val + (0.05f + (0.07f * (1 - body_knob_val))));
+            held_val = daisy::Random::GetFloat(body_knob_val - (0.05f + (0.07f * (1.0f - body_knob_val))), body_knob_val + (0.05f + (0.07f * (1.0f - body_knob_val))));
         }
 
         float slewRate = 0.08f; //lower is slower
@@ -166,27 +166,30 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
 
     params_.UpdateNormalized(Parameter::FeedbackBody, body_val);
     
-    // update the volume levels
-    switch (control_volmode) {
-        case 1:
-            if(abs(control_volumes[control_volmode] - volume_knob) < 0.1) {
-                params_.UpdateNormalized(Parameter::InputVolume, volume_knob);
-                control_volumes[control_volmode] = volume_knob;
-            }
-            break;
-        case 2:
-            if(abs(control_volumes[control_volmode] - volume_knob) < 0.1) {
-                params_.UpdateNormalized(Parameter::OutputVolume, volume_knob);
-                control_volumes[control_volmode] = volume_knob;
-            }
-            break;  
-        default:
-            if(abs(control_volumes[control_volmode] - volume_knob) < 0.1) {
-                params_.UpdateNormalized(Parameter::WetLevel, volume_knob);
-                control_volumes[control_volmode] = volume_knob;
-            }
-            break;
+    if (controlling_OutputVol) {
+        if(!vol_knob_catched) {
+            if (fabsf(volume_knob - vol_target_val) < 0.02)
+                vol_knob_catched = true;
+        }
+
+        if (vol_knob_catched && fabsf(volume_knob - prev_val_output) > 0.01)
+        {
+            prev_val_output = volume_knob;
+        }
+        }
+    else {
+        if(!vol_knob_catched) {
+            if (fabsf(volume_knob - vol_target_val) < 0.02)
+                vol_knob_catched = true;
+        }
+
+        if (vol_knob_catched && fabsf(volume_knob - prev_val_input) > 0.01)
+        {
+            params_.UpdateNormalized(Parameter::InputVolume, volume_knob);
+            prev_val_input = volume_knob;
+        }
     }
+            
 
     freq_shift = freq_knob * 24.0f;
     note = current_note_base + freq_shift + octave_shift;
@@ -223,13 +226,18 @@ void Controls::UpdateSlowRate(DaisySeed &hw) { //pads are updated at a slower ra
         controlling_env = false;
     }
 
-    // Pad 10 + input gain = setting input level. Pad 11 + input gain = setting the ouput volume;
-    if(touch_.IsTouched(10)) {
-        control_volmode = 1;
-    } else if (touch_.IsTouched(11)) {
-        control_volmode = 2;
+    if (touch_.IsTouched(10)) {
+        if(!controlling_OutputVol){
+            vol_knob_catched = false;
+            vol_target_val = prev_val_output;
+        }
+        controlling_OutputVol = true;
     } else {
-        control_volmode = 0;
+        if(controlling_OutputVol){
+            vol_knob_catched = false;
+            vol_target_val = prev_val_input;
+        }
+        controlling_OutputVol = false;
     }
 
     static bool drone_toggle_pressed = false;
@@ -245,12 +253,12 @@ void Controls::UpdateSlowRate(DaisySeed &hw) { //pads are updated at a slower ra
     bool octave_down_pad = touch_.IsTouched(0);
     bool octave_up_pad   = touch_.IsTouched(2);
 
-    if (octave_down_pad && !octave_down_was) {
+    if (octave_down_pad && !octave_down_was && !touch_.IsTouched(11)) {
         octave_shift -= 12.0f;
         if (octave_shift < -12.0f) octave_shift = -12.0f;
     }
 
-    if (octave_up_pad && !octave_up_was) {
+    if (octave_up_pad && !octave_up_was && !touch_.IsTouched(11)) {
         octave_shift += 12.0f;
         if (octave_shift > 48.0f) octave_shift = 48.0f;
     }
@@ -263,8 +271,8 @@ void Controls::UpdateSlowRate(DaisySeed &hw) { //pads are updated at a slower ra
     
     static bool scale_pad_pressed = false;
 
-    bool scale_pad = touch_.IsTouched(1);
-    if(scale_pad && !scale_pad_pressed) {
+    bool scale_pad = touch_.IsTouched(0);
+    if(scale_pad && !scale_pad_pressed && touch_.IsTouched(11)) {
         scale = (scale + 1) % 3;
     }
     scale_pad_pressed = scale_pad;
@@ -365,10 +373,6 @@ void Controls::registerParams(Engine &engine) {
     // Input level
     params_.Register(Parameter::InputVolume, 0.5f, 0.0f, 5.0f,
         std::bind(&Engine::SetInputLevel, &engine, _1), 0.05f, daisysp::Mapping::EXP);
-
-    // set dry/wet mix
-    params_.Register(Parameter::WetLevel, 0.5f, 0.0f, 1.0f,
-        std::bind(&Engine::SetWetLevel, &engine, _1));
 
     // Envelope shape
     params_.Register(Parameter::EnvelopeShape, 0.0f, 0.0f, 1.0f,

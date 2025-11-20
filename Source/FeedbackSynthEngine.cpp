@@ -104,8 +104,6 @@ void Engine::SetReverbFeedback(const float time) { verb_->SetFeedback(time); }
 
 void Engine::SetOutputLevel(const float level) { output_level_ = level; }
 
-void Engine::SetWetLevel(const float level) { wet_level = level; }
-
 void Engine::SetInputLevel(const float level) { input_level_ = level; }
 
 void Engine::NoteOn() {_env.Trigger();}
@@ -169,11 +167,7 @@ void Engine::Process(float in, float &outL, float &outR) {
   sampL = 0.5f * (sampL + echoL);
   sampR = 0.5f * (sampR + echoR);
 
-  // Dry/wet level
-  outL = (inL * (1.0f - wet_level)) + (sampL * wet_level);
-  outR = (inR * (1.0f - wet_level)) + (sampR * wet_level);
-
   // ---> Output
-  outL = outL * output_level_;
-  outR = outR * output_level_;
+  outL = sampL * output_level_;
+  outR = sampR * output_level_;
 }
