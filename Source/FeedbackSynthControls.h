@@ -101,6 +101,7 @@ private:
     bool vol_knob_catched = false;
     float env_target_val = 0.0f;
     float vol_target_val = 0.0f;
+    float slewRate = 0.08f; 
 
 };
 

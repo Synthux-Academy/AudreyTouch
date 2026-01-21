@@ -85,7 +85,7 @@ void Controls::Init(DaisySeed &hw, Engine &engine) {
     _osc.Init(48000.0f);
     _osc.SetAmp(1.f);
     _osc.SetWaveform(daisysp::Oscillator::WAVE_RAMP);
-    _osc.SetFreq(5.0f);
+    _osc.SetFreq(1.0f);
 
 }
 
@@ -134,18 +134,25 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
         if (env_knob_catched && fabsf(body_knob - prev_val_body) > 0.01)
         {
             body_knob_val = 1.0f - body_knob;
-            _osc.SetFreq(1.0f + (body_knob * 7.0f));
             prev_val_body = body_knob;
         }
     }
         
 
     if (!lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val;}
-    else if (lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val + (_osc.Process() * (0.05 + (0.07f * (1.0f - body_knob_val))));}
-    else if (lfo_switch_a.Read() && !lfo_switch_b.Read()) {
+    //else if (lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val + (_osc.Process() * (0.05 + (0.07f * (1.0f - body_knob_val))));}
+    else if ((lfo_switch_a.Read() && !lfo_switch_b.Read()) || (lfo_switch_a.Read() && lfo_switch_b.Read())) {
         static float prev_osc = 0.0f;
         static float held_val = 0.0f;
         static float smoothed_val = 0.0f;
+
+        if (lfo_switch_a.Read() && lfo_switch_b.Read()){
+            _osc.SetFreq(0.01f + ((1.0f - body_knob_val)*0.5f));
+            slewRate = 0.0001f; //lower is slower
+        } else if (lfo_switch_a.Read() && !lfo_switch_b.Read()) {
+            _osc.SetFreq(1.0f + ((1.0f - body_knob_val) * 7.0f));
+            slewRate = 0.08f; //lower is slower
+        }
 
         float curr_osc = _osc.Process();
         if ((prev_osc < 0.0f && curr_osc >= 0.0f) || (prev_osc > 0.0f && curr_osc <= 0.0f)) {
@@ -153,7 +160,6 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
             held_val = daisy::Random::GetFloat(body_knob_val - (0.05f + (0.07f * (1.0f - body_knob_val))), body_knob_val + (0.05f + (0.07f * (1.0f - body_knob_val))));
         }
 
-        float slewRate = 0.08f; //lower is slower
         smoothed_val += slewRate * (held_val - smoothed_val);
 
         body_val = smoothed_val;
@@ -174,6 +180,7 @@ void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
 
         if (vol_knob_catched && fabsf(volume_knob - prev_val_output) > 0.01)
         {
+            params_.UpdateNormalized(Parameter::OutputVolume, volume_knob);
             prev_val_output = volume_knob;
         }
         }
