@@ -2,12 +2,13 @@
 #include "FeedbackSynthEngine.h"
 #include "FeedbackSynthControls.h"
 #include "Source/FeedbackSynthControls.h"
-#include "Source/touch/touch.h"
+#include "Source/simpletouch/touch.h"
 
 using namespace infrasonic;
 using namespace daisy;
 using namespace daisysp;
 using namespace synthux;
+using namespace simpletouch;
 
 static const auto kSampleRate = SaiHandle::Config::SampleRate::SAI_48KHZ;
 static const size_t kBlockSize = 4;

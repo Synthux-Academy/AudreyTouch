@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SYNTHUX_SIMPLETOUCH_SWITCHES_H
+#define SYNTHUX_SIMPLETOUCH_SWITCHES_H
 
 #include "daisy_seed.h"
 
@@ -7,6 +9,7 @@
 using namespace daisy;
 
 namespace synthux {
+namespace simpletouch {
 class Switches {
 public:
     Switches() = default;
@@ -15,14 +18,16 @@ public:
 
     void Init();
 
-    int A();
+    int s7s8();
 
-    int B();
+    int s9s10();
 
 private:
     Switch3 switch_7_8_;
     Switch3 switch_9_10_;
 };
-};
+}
+}
 
+#endif
 #endif

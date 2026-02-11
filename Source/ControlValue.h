@@ -1,5 +1,5 @@
-#ifndef SYNHTUX_DETACHABLEPARAMETER_H
-#define SYNTHUX_DETACHABLEPARAMETER_H
+#ifndef SYNTHUX_CONTROLVALUE_H
+#define SYNTHUX_CONTROLVALUE_H
 
 #include <daisy_seed.h>
 #include <daisysp.h>
@@ -22,7 +22,7 @@ public:
 
     ~ControlValue() = default;
 
-    void Init(DaisySeed &hw, float initial, float slew_time, float threshold = 0.02f) {
+    void Init(const DaisySeed &hw, float initial, float slew_time, float threshold = 0.02f) {
         value_ = initial;
         state_ = kStateAttached;
         coef_ = infrasonic::onepole_coef_t60(slew_time, hw.AudioCallbackRate());
@@ -60,6 +60,5 @@ private:
     float threshold_;
 };
 }
-
 
 #endif

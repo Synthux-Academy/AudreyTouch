@@ -1,6 +1,6 @@
 #include "knobs.h"
 
-using namespace synthux;
+using namespace synthux::simpletouch;
 using namespace daisy;
 using namespace seed;
 

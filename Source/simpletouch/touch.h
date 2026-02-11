@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SYNTHUX_SIMPLETOUCH_TOUCH_H
+#define SYNTHUX_SIMPLETOUCH_TOUCH_H
 
 #include "daisy_seed.h"
 #include "knobs.h"
@@ -10,6 +12,7 @@
 using namespace daisy;
 
 namespace synthux {
+namespace simpletouch {
 class Touch {
 public:
     Touch() = default;
@@ -35,6 +38,8 @@ private:
     Pads pads_;
     Switches switches_;
 };
-};
+}
+}
 
+#endif
 #endif

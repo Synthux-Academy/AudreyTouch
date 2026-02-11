@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SYNTHUX_SIMPLETOUCH_KNOBS_H
+#define SYNTHUX_SIMPLETOUCH_KNOBS_H
 
 #include "daisy_seed.h"
 #include <array>
@@ -8,6 +10,7 @@
 using namespace daisy;
 
 namespace synthux {
+namespace simpletouch {
 class Knobs {
 public:
     static constexpr int kKnobCount = 8;
@@ -30,6 +33,9 @@ public:
 private:
     std::array<AnalogControl, kKnobCount> knobs_;
 };
-};
+}
+}
 
 #endif
+#endif
+

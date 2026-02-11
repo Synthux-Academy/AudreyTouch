@@ -14,14 +14,14 @@ C_DEFS = -DTARGET_DAISY
 
 CPP_SOURCES = \
     FeedbackSynth_main.cpp \
-    Source/touch/knobs.cpp \
-    Source/touch/switches.cpp \
     Source/BiquadFilters.cpp \
     Source/FeedbackSynthControls.cpp \
     Source/FeedbackSynthEngine.cpp \
     Source/KarplusString.cpp \
     Source/DCBlock.cpp \
-    Source/memory/sdram_alloc.cpp
+    Source/memory/sdram_alloc.cpp \
+    Source/simpletouch/knobs.cpp \
+    Source/simpletouch/switches.cpp
 
 # Core location
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core

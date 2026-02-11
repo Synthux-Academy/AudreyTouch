@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SYNTHUX_SIMPLETOUCH_PADS_H
+#define SYNTHUX_SIMPLETOUCH_PADS_H
 
 #include "daisy_seed.h"
 #include "dev/mpr121.h"
@@ -8,6 +10,7 @@
 using namespace daisy;
 
 namespace synthux {
+namespace simpletouch {
 class Pads {
 public:
     Pads() = default;
@@ -43,6 +46,8 @@ private:
     uint16_t state_, prev_state_;
     Mpr121I2C mpr_;
 };
-};
+}
+}
 
+#endif
 #endif

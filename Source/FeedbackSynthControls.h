@@ -5,9 +5,10 @@
 #include <daisy_seed.h>
 #include "ControlValue.h"
 #include "FeedbackSynthEngine.h"
-#include "touch/touch.h"
+#include "simpletouch/touch.h"
 
 using namespace synthux;
+using namespace simpletouch;
 
 namespace infrasonic {
 namespace FeedbackSynth {
@@ -34,19 +35,33 @@ private:
             octave_shift_;
 
     ControlValue
-            input_volume_,
-            output_volume_,
-            envelope_shape_,
-            feedback_body_knob_,
-            feedback_body_final_;
+            input_volume_cv_,
+            output_volume_cv_,
+            envelope_shape_cv_,
+            feedback_body_knob_cv_,
+            feedback_body_final_cv_;
 
-    bool drone_mode_,
+    bool
+            drone_mode_,
             prev_note_touched_;
 
-    int scale_,
+    int
+            scale_,
             range_;
 
-    Oscillator lfo_;
+    Oscillator body_lfo_;
+
+    AnalogControl &FrequencyFader() const { return touch_.knobs().s36(); }
+    AnalogControl &FeedbackGainKnob() const { return touch_.knobs().s30(); }
+    AnalogControl &VolumeKnob() const { return touch_.knobs().s31(); }
+    AnalogControl &ReverbMixKnob() const { return touch_.knobs().s32(); }
+    AnalogControl &ReverbFeedbackKnob() const { return touch_.knobs().s33(); }
+    AnalogControl &LPFKnob() const { return touch_.knobs().s34(); }
+    AnalogControl &HPFKnob() const { return touch_.knobs().s35(); }
+    AnalogControl &EnvelopeBodyFader() const { return touch_.knobs().s37(); }
+
+    int RangeSwitch() const { return touch_.switches().s7s8(); }
+    int LfoSwitch() const { return touch_.switches().s9s10(); }
 };
 }
 }
