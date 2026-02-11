@@ -14,6 +14,8 @@ C_DEFS = -DTARGET_DAISY
 
 CPP_SOURCES = \
     FeedbackSynth_main.cpp \
+    Source/touch/knobs.cpp \
+    Source/touch/switches.cpp \
     Source/BiquadFilters.cpp \
     Source/FeedbackSynthControls.cpp \
     Source/FeedbackSynthEngine.cpp \
