@@ -29,7 +29,7 @@ void Controls::UpdateAudioRate(DaisySeed &hw) {
     engine_.SetReverbMix(fmap(ReverbMixKnob().Process(), 0.0f, 1.0f));
 
     // Reverb Feedback
-    engine_.SetReverbFeedback(fmap(ftension(ReverbFeedbackKnob().Process(), -3.0f), 0.2f, 1.0f));
+    engine_.SetReverbFeedback(fmap(ftension(ReverbSizeKnob().Process(), -3.0f), 0.2f, 1.0f));
 
     // Feedback filter cutoffs in hz
     engine_.SetFeedbackLPFCutoff(fmap(LPFKnob().Process(), 100.0f, 18000.0f, Mapping::LOG));

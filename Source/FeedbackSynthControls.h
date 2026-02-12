@@ -55,7 +55,7 @@ private:
     AnalogControl &FeedbackGainKnob() const { return touch_.knobs().s30(); }
     AnalogControl &VolumeKnob() const { return touch_.knobs().s31(); }
     AnalogControl &ReverbMixKnob() const { return touch_.knobs().s32(); }
-    AnalogControl &ReverbFeedbackKnob() const { return touch_.knobs().s33(); }
+    AnalogControl &ReverbSizeKnob() const { return touch_.knobs().s33(); }
     AnalogControl &LPFKnob() const { return touch_.knobs().s34(); }
     AnalogControl &HPFKnob() const { return touch_.knobs().s35(); }
     AnalogControl &EnvelopeBodyFader() const { return touch_.knobs().s37(); }
