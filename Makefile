@@ -19,7 +19,9 @@ CPP_SOURCES = \
     Source/FeedbackSynthEngine.cpp \
     Source/KarplusString.cpp \
     Source/DCBlock.cpp \
-    Source/memory/sdram_alloc.cpp
+    Source/memory/sdram_alloc.cpp \
+    Source/simpletouch/knobs.cpp \
+    Source/simpletouch/switches.cpp
 
 # Core location
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
