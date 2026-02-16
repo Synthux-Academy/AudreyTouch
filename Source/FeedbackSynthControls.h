@@ -30,24 +30,18 @@ private:
     Engine &engine_;
     Touch &touch_;
 
-    float
-            current_note_base_,
-            octave_shift_;
+    float current_note_base_;
+    float octave_shift_;
+    bool drone_mode_;
 
-    ControlValue
-            input_volume_cv_,
-            output_volume_cv_,
-            envelope_shape_cv_,
-            feedback_body_knob_cv_,
-            feedback_body_final_cv_;
+    ControlValue input_volume_cv_;
+    ControlValue output_volume_cv_;
+    ControlValue envelope_shape_cv_;
+    ControlValue feedback_body_knob_cv_;
+    ControlValue feedback_body_final_cv_;
 
-    bool
-            drone_mode_,
-            prev_note_touched_;
-
-    int
-            scale_,
-            range_;
+    int scale_;
+    int range_;
 
     Oscillator body_lfo_;
 

@@ -137,6 +137,7 @@ void Controls::UpdateSlowRate(DaisySeed &hw) {
         {0, 2, 3, 7, 9, 12, 14}
     };
 
+    static bool prev_note_touched = false;
     bool note_touched = false;
     for (int pad = 3; pad <= 9; ++pad) {
         if (touch_.pads().IsRisingEdge(pad)) {
@@ -149,13 +150,13 @@ void Controls::UpdateSlowRate(DaisySeed &hw) {
         }
     }
 
-    if (note_touched && !prev_note_touched_) {
+    if (note_touched && !prev_note_touched) {
         engine_.NoteOn();
-    } else if (!note_touched && prev_note_touched_) {
+    } else if (!note_touched && prev_note_touched) {
         engine_.NoteOff();
     }
 
-    prev_note_touched_ = note_touched;
+    prev_note_touched = note_touched;
 
     hw.SetLed(drone_mode_ || note_touched);
 }

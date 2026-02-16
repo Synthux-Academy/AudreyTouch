@@ -10,6 +10,14 @@ using namespace daisysp;
 using namespace daisy;
 
 namespace synthux {
+
+/**
+ * A value that can be detached from tracking the input. When attached back it will only continue tracking once the input
+ * appears within the given threshold from the stored value. This is useful for having different params mapped to the
+ * same knob.
+ *
+ * If you don't need this functionality, consider using plain AnalogControl as it has built-in smoothing.
+ */
 class ControlValue {
 public:
     enum State {

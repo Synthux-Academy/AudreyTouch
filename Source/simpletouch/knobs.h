@@ -30,6 +30,8 @@ public:
     AnalogControl &s36() { return knobs_[6]; };
     AnalogControl &s37() { return knobs_[7]; };
 
+    std::array<AnalogControl, kKnobCount> &knobs() { return knobs_; }
+
 private:
     std::array<AnalogControl, kKnobCount> knobs_;
 };
