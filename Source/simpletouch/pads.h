@@ -26,7 +26,7 @@ public:
         state_ = mpr_.Touched();
     }
 
-    bool IsTouched(uint16_t pad) const {
+    bool IsTouched(uint8_t pad) const {
         return state_ & (1 << pad);
     }
 
@@ -34,11 +34,11 @@ public:
         return state_ > 0;
     }
 
-    bool IsRisingEdge(uint16_t pad) const {
+    bool IsRisingEdge(uint8_t pad) const {
         return state_ & ~prev_state_ & (1 << pad);
     }
 
-    bool IsFallingEdge(uint16_t pad) const {
+    bool IsFallingEdge(uint8_t pad) const {
         return ~state_ & prev_state_ & (1 << pad);
     }
 
