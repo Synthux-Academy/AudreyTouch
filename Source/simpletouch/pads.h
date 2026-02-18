@@ -28,11 +28,11 @@ public:
 
     bool IsTouched(uint16_t pad) const {
         return state_ & (1 << pad);
-    };
+    }
 
     bool HasTouch() const {
         return state_ > 0;
-    };
+    }
 
     bool IsRisingEdge(uint16_t pad) const {
         return state_ & ~prev_state_ & (1 << pad);
