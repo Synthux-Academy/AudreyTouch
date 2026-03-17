@@ -140,7 +140,7 @@ void Controls::UpdateSlowRate(DaisySeed &hw) {
     static bool prev_note_touched = false;
     bool note_touched = false;
     for (int pad = 3; pad <= 9; ++pad) {
-        if (touch_.pads().IsRisingEdge(pad)) {
+        if (touch_.pads().IsTouched(pad)) {
             int note_index = pad - 3;
             float base_note = 16.0f;
 
