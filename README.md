@@ -23,7 +23,7 @@ Have a look at the flow chart embedded into the faceplate design to understand h
 > Note: always be careful with volume levels.
 > The controls offer a wide range of possibilities, and fine-tuning and experimentation are key to finding sweet spots. Different inputs will produce different results, so it is always a good idea to start with the minimum pot positions (CCW) and slowly bring up S30, the excitation amount, and S31, the input gain.
 
-**Audio In**: accepts a normal stereo line input. 
+**Audio In**: accepts a normal stereo line input. Stereo signals are summed to mono in the firmware. 
 **Audio Out**: stereo line out
 
 #### Knobs:
