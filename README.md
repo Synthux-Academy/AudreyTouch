@@ -8,12 +8,64 @@ Audrey II is a horrorscape synthesizer used by film composers, sound designers a
 **Or get the full Simple Touch package**, including all faceplates — *Audrey, Bass, String, FX, and Blank*:  
 [🎛️ Order Simple Touch](https://www.synthux.academy/simple-synth/touch2)
 
+## Manual
+
+Audrey Touch uses the same core concept as the larger Audrey II; the main driving factor is the feedback loop, with controls to manipulate that flow. (The delay section of Audrey II is not implemented.) Whereas Audrey II firmware does have audio input, the standard build does not include that hardware, although it can be modded by simply adding the input jack.
+
+The idea is to excite the loop in varying amounts to create drifting horrorscapes. By inputting audio, you can also use that audio as a driving force, which allows Audrey Touch to function as an effect for any audio source. Try using anything from percussive drum loops to melodies to voice.
+
+Have a look at the flow chart embedded into the faceplate design to understand how parts interact.
+
+![Audrey faceplate side by side with Simple Touch PCB](Faceplate/SynthuxAudreyTouch_joined.jpg)
+
+### Controls
+
+> Note: always be careful with volume levels.
+> The controls offer a wide range of possibilities, and fine-tuning and experimentation are key to finding sweet spots. Different inputs will produce different results, so it is always a good idea to start with the minimum pot positions (CCW) and slowly bring up S30, the excitation amount, and S31, the input gain.
+
+**Audio In**: accepts a normal stereo line input. 
+**Audio Out**: stereo line out
+
+#### Knobs:
+
+S30 - Main control, use this to set a trigger threshold
+
+S31 - Input gain, turn down to disable and only use internal exciter
+S32 - Dry / Wet, how much does the sound desintegrate
+S33 - Size, space out the reverb
+
+S34 - Low Pass, use in conjunction with high pass to narrow down the range
+S35 - High Pass
+S37 (right fader) - filter mix
+
+S36 (left fader) - frequency
+
+#### Pads
+
+**Frequency:**
+
+P03 - P09 - tap to excite different frequencies
+
+P00 - tap for octave down
+P02 - tap for octave up
+
+**Drone**: 
+
+P11 + P02 - Hold P11 and tap P02 to toggle drone 
+
+**Envelope**: 
+
+P11 + S37 - Hold P11 and move the right fader to change the envelope (same envelope as Touch Bass)
+
+#### Switches:
+
+The left switch changes scales of the pads. 
+
+The right switch controls modulation over the right fader. Keep it down for no modulation, center for sine and up for S&H with slew. 
+
+
+
 ---
-
-📘 **Manual coming soon!**
-
-![Audrey-Touch](https://github.com/user-attachments/assets/ead3868f-cd63-43c0-a0a0-303965cc6bd3)
-
 
 # Installing Audrey II Firmware on Simple Touch
 - Download the .bin file from this repository. 
@@ -23,7 +75,7 @@ Audrey II is a horrorscape synthesizer used by film composers, sound designers a
 # Building the Audrey Touch firmware
 
 ## 1. Setup
-- Follow the [Daisy Developer Setup Guide]((https://daisy.audio/tutorials/cpp-dev-env/#follow-along-with-the-video-guide)) to install the required toolchain (ARM GCC, Make, etc.).
+- Follow the [Daisy Developer Setup Guide](https://daisy.audio/tutorials/cpp-dev-env/#follow-along-with-the-video-guide) to install the required toolchain (ARM GCC, Make, etc.).
 - Clone this repository
 - Install the submodules via
 
