@@ -44,7 +44,7 @@ int main(void)
 
     while (1)
     {
-        controls.UpdateSlowRate(hw);
+        controls.UpdateLoopRate(hw);
         hw.DelayMs(4);
     }
 }

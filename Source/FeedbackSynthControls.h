@@ -2,11 +2,16 @@
 #ifndef INFS_FEEDBACKSYNTHCONTROLS_H
 #define INFS_FEEDBACKSYNTHCONTROLS_H
 
-#include <daisy.h>
+#if !DEBUG
+#define USB_MIDI
+#endif
+
 #include <daisy_seed.h>
+
 #include "FeedbackSynthEngine.h"
 #include "ParameterRegistry.h"
 #include "simple-daisy-touch.h"
+#include "mvalue.h"
 
 namespace infrasonic {
 namespace FeedbackSynth {
@@ -21,9 +26,7 @@ public:
     void Init(daisy::DaisySeed &hw, Engine &engine);
 
     void UpdateAudioRate(daisy::DaisySeed &hw);
-    void UpdateSlowRate(daisy::DaisySeed &hw);
-
-    void UpdateFrequencyFromTouch();
+    void UpdateLoopRate(daisy::DaisySeed &hw);
 
     void Process() {
         params_.Process();
@@ -55,54 +58,52 @@ private:
         EchoDelayFeedback,  // 9
         OutputVolume,       // 10
         InputVolume,        // 11
-        EnvelopeShape
+        EnvelopeShape,
+        count,
+        None
     };
 
     using Parameters = ParameterRegistry<Parameter>;
 
     Parameters params_;
-    daisy::Switch del_sw_;
-    GPIO scale_switch_a;
-    GPIO scale_switch_b;
-    GPIO lfo_switch_a;
-    GPIO lfo_switch_b;
-    daisysp::Oscillator _osc;
-    
+    GPIO scale_switch_a_;
+    GPIO scale_switch_b_;
+    GPIO lfo_switch_a_;
+    GPIO lfo_switch_b_;
+    daisysp::Oscillator osc_;
 
     void initADCs(daisy::DaisySeed &hw);
     void registerParams(Engine &engine);
 
-    int scale = 0;
-    bool drone_mode = false;
-    float prev_val_env = 0.0f;
-    float prev_val_body = 0.001f;
-    bool controlling_env = false;
-    float prev_val_input = 0.5f;
-    float prev_val_output = 0.5f;
-    bool controlling_OutputVol = false;
-    float freq_shift = 0.0f;
-    int range = 0;
-    float octave_shift = 0.0f;
-    bool octave_down_was = true;
-    bool octave_up_was = true;
-    bool octave_down_pad = false;
-    bool octave_up_pad = false;
-    float body_knob_val = 0.0f;
-    float body_val = 0.0f;
-    float lfo_depth = 0.0f;
-    float note = 35.0f;
-    float current_note_base = 40.0f;
-    float min_note = 16.0f;
-    float max_note = 88.0f;
-    float body_knob = 0.0f;
-    float volume_knob = 0.0f;
+    void processTouch(DaisySeed&);
+    float bodyValue(const float param);
 
-    bool env_knob_catched = false;
-    bool vol_knob_catched = false;
-    float env_target_val = 0.0f;
-    float vol_target_val = 0.0f;
-    float slewRate = 0.08f; 
+    #ifdef USB_MIDI
+    daisy::MidiUsbHandler midi_;
+    void processMIDI();
+    #endif
 
+    synthux::MValue env_;
+    synthux::MValue body_;
+    synthux::MValue in_vol_;
+    synthux::MValue out_vol_;
+
+    static constexpr uint8_t kMinNote = 16;
+    static constexpr uint8_t kMaxNote = 88;
+
+    float body_knob_val_ = 0.f;
+    float body_knob_ = 0.f;
+    float volume_knob_ = 0.f;
+
+    uint8_t scale_idx_ = 0;
+    uint8_t note_base_ = 40;
+    int8_t octave_shift_ = 0;
+
+    bool octave_down_was_ = true;
+    bool octave_up_was_ = true;
+    bool drone_mode_ = false;
+    bool controlling_env_ = false;
+    bool controlling_output_vol_ = false;
 };
 
 }

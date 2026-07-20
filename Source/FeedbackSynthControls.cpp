@@ -1,15 +1,14 @@
 #include "FeedbackSynthControls.h"
+
+#include <daisysp.h>
 #include <functional>
+#include <bitset>
 #include <algorithm>
-#include "simple-daisy-touch.h"
-#include "daisysp.h"
 
-
-
-using namespace infrasonic;
 using namespace infrasonic::FeedbackSynth;
 using namespace daisy;
 
+/*
 ////////////// SIMPLE X DAISY PINOUT CHEATSHEET ///////////////
 
 // 3v3           29  |       |   20    AGND
@@ -32,9 +31,7 @@ using namespace daisy;
 // 3v3 Digital   46  |       |   03    D2
 // VIN           47  |       |   02    D1
 // DGND          48  |       |   01    D0
-
-// TODO: Add footprint numbers to these
-
+*/
 static constexpr daisy::Pin kInputVolumeAdcPin          = daisy::seed::A1;  // Simple bottom pin 31
 static constexpr daisy::Pin kFreqKnobAdcPin             = daisy::seed::A6; // Simple bottom pin 36
 static constexpr daisy::Pin kFeedbackGainKnobPin        = daisy::seed::A0;  // Simple bottom pin 30
@@ -61,20 +58,11 @@ void Controls::Init(DaisySeed &hw, Engine &engine) {
 
     params_.Init(hw.AudioSampleRate() / hw.AudioBlockSize());
 
-    //delay switch not implemented
-    /*del_sw_.Init(
-        static_cast<dsy_gpio_pin>(kDelaySwitchPin),
-        1000.0f,
-        Switch::TYPE_TOGGLE,
-        Switch::POLARITY_INVERTED,
-        Switch::PULL_UP
-    );*/
+    scale_switch_a_.Init(kScaleASwitchPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
+    scale_switch_b_.Init(kScaleBSwitchPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
 
-    scale_switch_a.Init(kScaleASwitchPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
-    scale_switch_b.Init(kScaleBSwitchPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
-
-    lfo_switch_a.Init(kLfoSwitchAPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
-    lfo_switch_b.Init(kLfoSwitchBPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
+    lfo_switch_a_.Init(kLfoSwitchAPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
+    lfo_switch_b_.Init(kLfoSwitchBPin, GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
 
 
     initADCs(hw);
@@ -82,235 +70,152 @@ void Controls::Init(DaisySeed &hw, Engine &engine) {
 
     touch_.Init(hw);
 
-    _osc.Init(48000.0f);
-    _osc.SetAmp(1.f);
-    _osc.SetWaveform(daisysp::Oscillator::WAVE_RAMP);
-    _osc.SetFreq(1.0f);
+    osc_.Init(48000.0f);
+    osc_.SetAmp(1.f);
+    osc_.SetWaveform(daisysp::Oscillator::WAVE_RAMP);
+    osc_.SetFreq(1.0f);
 
+    #ifdef USB_MIDI
+    daisy::MidiUsbHandler::Config midi_cfg;
+    midi_.Init(midi_cfg);
+    #endif
 }
 
 void Controls::UpdateAudioRate(DaisySeed &hw) { //pots are updated at audio rate
-
-    float freq_knob = hw.adc.GetFloat(0);
-    /*float FeedbackGain = hw.adc.GetFloat(1);
-    if (range == 0) {FeedbackGain = FeedbackGain * 0.44f;}
-    else if (range == 1) {FeedbackGain = (FeedbackGain * 0.50f)+0.16f;}
-    else if( range == 2) {FeedbackGain = (FeedbackGain * 0.7f)+0.3f;}
-    params_.UpdateNormalized(Parameter::FeedbackGain,       FeedbackGain);*/
     params_.UpdateNormalized(Parameter::FeedbackGain,       hw.adc.GetFloat(1));
-    body_knob = hw.adc.GetFloat(2);
     params_.UpdateNormalized(Parameter::FeedbackLPFCutoff,  hw.adc.GetFloat(3));
     params_.UpdateNormalized(Parameter::FeedbackHPFCutoff,  hw.adc.GetFloat(4));
     params_.UpdateNormalized(Parameter::ReverbMix,          hw.adc.GetFloat(5));
     params_.UpdateNormalized(Parameter::ReverbDecay,        ftension(hw.adc.GetFloat(6), -3.0f));
-    volume_knob = hw.adc.GetFloat(10);
+    params_.UpdateNormalized(Parameter::EchoDelaySend,      0.0f);
+    params_.UpdateNormalized(Parameter::EchoDelayTime,      0.0f);
+    params_.UpdateNormalized(Parameter::EchoDelayFeedback,  0.0f);
 
-    //delay is 
-    //del_sw_.Debounce();
-    //float delay_scale = del_sw_.Pressed() ? 0.5f : 1.0f;
-    params_.UpdateNormalized(Parameter::EchoDelaySend, 0.0f);
-    params_.UpdateNormalized(Parameter::EchoDelayTime, 0.0f);
-    params_.UpdateNormalized(Parameter::EchoDelayFeedback, 0.0f);
+    body_knob_ = hw.adc.GetFloat(2);
+    env_.process(body_knob_, controlling_env_);
+    if (env_.apply()) params_.UpdateNormalized(Parameter::EnvelopeShape, env_.value());
+    body_.process(body_knob_, !controlling_env_);
+    if (body_.apply()) body_knob_val_ = 1.0f - body_.value();
+    params_.UpdateNormalized(Parameter::FeedbackBody, bodyValue(body_knob_val_));
 
+    volume_knob_ = hw.adc.GetFloat(10);
+    out_vol_.process(volume_knob_, controlling_output_vol_);
+    if (out_vol_.apply()) params_.UpdateNormalized(Parameter::OutputVolume, out_vol_.value());
 
-    if (controlling_env) {
-        if(!env_knob_catched) {
-            if (fabsf(body_knob - env_target_val) < 0.02)
-                env_knob_catched = true;
-        }
+    in_vol_.process(volume_knob_, !controlling_output_vol_);
+    if (in_vol_.apply()) params_.UpdateNormalized(Parameter::InputVolume, in_vol_.value());
 
-        if (env_knob_catched && fabsf(body_knob - prev_val_env) > 0.01)
-        {
-            params_.UpdateNormalized(Parameter::EnvelopeShape, body_knob);
-            prev_val_env = body_knob;
-        }
-    }
-    else {
-        if(!env_knob_catched) {
-            if (fabsf(body_knob - env_target_val) < 0.02)
-                env_knob_catched = true;
-        }
-
-        if (env_knob_catched && fabsf(body_knob - prev_val_body) > 0.01)
-        {
-            body_knob_val = 1.0f - body_knob;
-            prev_val_body = body_knob;
-        }
-    }
-        
-
-    if (!lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val;}
-    //else if (lfo_switch_a.Read() && lfo_switch_b.Read()) {body_val = body_knob_val + (_osc.Process() * (0.05 + (0.07f * (1.0f - body_knob_val))));}
-    else if ((lfo_switch_a.Read() && !lfo_switch_b.Read()) || (lfo_switch_a.Read() && lfo_switch_b.Read())) {
-        static float prev_osc = 0.0f;
-        static float held_val = 0.0f;
-        static float smoothed_val = 0.0f;
-
-        if (lfo_switch_a.Read() && lfo_switch_b.Read()){
-            _osc.SetFreq(0.01f + ((1.0f - body_knob_val)*0.5f));
-            slewRate = 0.0001f; //lower is slower
-        } else if (lfo_switch_a.Read() && !lfo_switch_b.Read()) {
-            _osc.SetFreq(1.0f + ((1.0f - body_knob_val) * 7.0f));
-            slewRate = 0.08f; //lower is slower
-        }
-
-        float curr_osc = _osc.Process();
-        if ((prev_osc < 0.0f && curr_osc >= 0.0f) || (prev_osc > 0.0f && curr_osc <= 0.0f)) {
-
-            held_val = daisy::Random::GetFloat(body_knob_val - (0.05f + (0.07f * (1.0f - body_knob_val))), body_knob_val + (0.05f + (0.07f * (1.0f - body_knob_val))));
-        }
-
-        smoothed_val += slewRate * (held_val - smoothed_val);
-
-        body_val = smoothed_val;
-
-        prev_osc = curr_osc;
-    }
-
-    if(body_val < 0.0f) body_val = 0.0f;
-    if(body_val > 1.0f) body_val = 1.0f;
-
-    params_.UpdateNormalized(Parameter::FeedbackBody, body_val);
-    
-    if (controlling_OutputVol) {
-        if(!vol_knob_catched) {
-            if (fabsf(volume_knob - vol_target_val) < 0.02)
-                vol_knob_catched = true;
-        }
-
-        if (vol_knob_catched && fabsf(volume_knob - prev_val_output) > 0.01)
-        {
-            params_.UpdateNormalized(Parameter::OutputVolume, volume_knob);
-            prev_val_output = volume_knob;
-        }
-        }
-    else {
-        if(!vol_knob_catched) {
-            if (fabsf(volume_knob - vol_target_val) < 0.02)
-                vol_knob_catched = true;
-        }
-
-        if (vol_knob_catched && fabsf(volume_knob - prev_val_input) > 0.01)
-        {
-            params_.UpdateNormalized(Parameter::InputVolume, volume_knob);
-            prev_val_input = volume_knob;
-        }
-    }
-            
-
-    freq_shift = freq_knob * 24.0f;
-    note = current_note_base + freq_shift + octave_shift;
-
-    if (note < min_note) note = min_note;
-    if (note > max_note) note = max_note;
-
-    float norm = (note - min_note) / (max_note - min_note);
+    auto freq_shift = hw.adc.GetFloat(0) * 24.0f;
+    auto note = std::clamp(
+        note_base_ + freq_shift + octave_shift_, 
+        static_cast<float>(kMinNote), 
+        static_cast<float>(kMaxNote));
+    auto norm = (note - kMinNote) / (kMaxNote - kMinNote);
     params_.UpdateNormalized(Parameter::Frequency, norm);
 }
 
-void Controls::UpdateSlowRate(DaisySeed &hw) { //pads are updated at a slower rate
-    static bool pad_was_touched = false;
-    bool any_pad_touched = false;
+void Controls::UpdateLoopRate(DaisySeed &hw) { //pads are updated at a slower rate
+    #ifdef USB_MIDI 
+    processMIDI();
+    #endif
+    processTouch(hw);
+}
 
-    if (!scale_switch_a.Read() && scale_switch_b.Read()) {range = 0;}
-    else if (scale_switch_a.Read() && scale_switch_b.Read()) {range = 1;}
-    else if (scale_switch_a.Read() && !scale_switch_b.Read()) {range = 2;}
+enum class BodyValueMode: uint8_t {
+    None        = 0,
+    FastLFO,
+    Direct,
+    SlowLFO
+};
+float Controls::bodyValue(const float param)
+{
+    std::bitset<2> lfo_sw;
+    lfo_sw.set(0, lfo_switch_a_.Read());
+    lfo_sw.set(1, lfo_switch_b_.Read());
+    auto mode = static_cast<BodyValueMode>(lfo_sw.to_ulong());
 
+    
+    auto lfo_slew_rate = .08f;
+    switch (mode) {
+        case BodyValueMode::FastLFO: {
+            osc_.SetFreq(1.f + ((1.f - body_knob_val_) * 7.f));
+            break;
+        }
+        case BodyValueMode::SlowLFO: {
+            osc_.SetFreq(.01f + ((1.0f - body_knob_val_) * .5f));
+            lfo_slew_rate = .0001f; //lower is slower
+            break;
+        }
+        default: return body_knob_val_;
+    }
 
+    auto curr_osc = osc_.Process();
+    static auto prev_osc = 0.f, held_val = 0.f, smoothed_val = 0.f;
+    if ((prev_osc < 0.f && curr_osc >= 0.f) || (prev_osc > 0.f && curr_osc <= 0.f)) {
+        held_val = daisy::Random::GetFloat(body_knob_val_ - (.05f + (.07f * (1.f - body_knob_val_))), body_knob_val_ + (.05f + (.07f * (1.0f - body_knob_val_))));
+    }
+    smoothed_val += lfo_slew_rate * (held_val - smoothed_val);
+    prev_osc = curr_osc;
+
+    return std::clamp(smoothed_val, 0.f, 1.f);
+}
+
+static constexpr uint8_t kFirstNotePad  = 3;
+static constexpr uint8_t kLastNotePad   = 9;
+static constexpr uint8_t kScalesCount   = 3;
+static constexpr uint8_t kScaleSize     = 7;
+static constexpr uint8_t scales[kScalesCount][kScaleSize] = {
+    { 0, 2, 4, 5, 9,  12, 14 },
+    { 0, 5, 6, 9, 10, 12, 13 },
+    { 0, 2, 3, 7, 9,  12, 14 }
+};
+void Controls::processTouch(DaisySeed& hw)
+{
     touch_.Process();
 
-    if (touch_.IsTouched(11) && !drone_mode) {
-        if(!controlling_env){
-            env_knob_catched = false;
-            env_target_val = prev_val_env;
+    static auto zero_was_touched = false;
+    static auto two_was_touched = false;
+    auto zero_touched   = touch_.IsTouched(0);
+    auto two_touched    = touch_.IsTouched(2);
+    auto ch_touched     = touch_.IsTouched(11); 
+
+    controlling_env_ = ch_touched && !drone_mode_;
+    controlling_output_vol_ = touch_.IsTouched(10);
+
+    if (ch_touched) {
+        if (zero_touched && !zero_was_touched) {
+            scale_idx_ = (scale_idx_ + 1) % kScalesCount;
         }
-        controlling_env = true;
-    } else {
-        if(controlling_env){
-            env_knob_catched = false;
-            env_target_val = prev_val_body;
+        if (two_touched && !two_was_touched) {
+            drone_mode_ = !drone_mode_;
+            engine_->DroneMode(drone_mode_);
         }
-        controlling_env = false;
+    }
+    else {
+        auto mult = 0;
+        if (zero_touched && !zero_was_touched) mult = -1;
+        else if (two_touched && !two_was_touched) mult = 1;
+        octave_shift_ = std::clamp(octave_shift_ + 12 * mult, -12, 48);    
     }
 
-    if (touch_.IsTouched(10)) {
-        if(!controlling_OutputVol){
-            vol_knob_catched = false;
-            vol_target_val = prev_val_output;
-        }
-        controlling_OutputVol = true;
-    } else {
-        if(controlling_OutputVol){
-            vol_knob_catched = false;
-            vol_target_val = prev_val_input;
-        }
-        controlling_OutputVol = false;
-    }
-
-    static bool drone_toggle_pressed = false;
-
-    bool drone_pad_combo = touch_.IsTouched(11) && touch_.IsTouched(2);
-    if(drone_pad_combo && !drone_toggle_pressed) {
-        drone_mode = !drone_mode;
-        engine_->DroneMode(drone_mode);
-        hw.SetLed(drone_mode);
-    }
-    drone_toggle_pressed = drone_pad_combo;
-
-    bool octave_down_pad = touch_.IsTouched(0);
-    bool octave_up_pad   = touch_.IsTouched(2);
-
-    if (octave_down_pad && !octave_down_was && !touch_.IsTouched(11)) {
-        octave_shift -= 12.0f;
-        if (octave_shift < -12.0f) octave_shift = -12.0f;
-    }
-
-    if (octave_up_pad && !octave_up_was && !touch_.IsTouched(11)) {
-        octave_shift += 12.0f;
-        if (octave_shift > 48.0f) octave_shift = 48.0f;
-    }
-
-    octave_down_was = octave_down_pad;
-    octave_up_was   = octave_up_pad;
-
-    octave_down_was = octave_down_pad;
-    octave_up_was = octave_up_pad;
-    
-    static bool scale_pad_pressed = false;
-
-    bool scale_pad = touch_.IsTouched(0);
-    if(scale_pad && !scale_pad_pressed && touch_.IsTouched(11)) {
-        scale = (scale + 1) % 3;
-    }
-    scale_pad_pressed = scale_pad;
-
-    static const int scaleA[] = {0, 2, 4, 5, 9, 12, 14};
-    static const int scaleB[] = {0, 5, 6, 9, 10, 12, 13};
-    static const int scaleC[] = {0, 2, 3, 7, 9, 12, 14};
-
-    for (int pad = 3; pad <= 9; ++pad) {
-        if (touch_.IsTouched(pad)) {
-            int note_index = pad - 3;
-            float base_note = 16.0f;
-
-            if(scale == 0){current_note_base = base_note + scaleA[note_index];}
-            else if(scale == 1){current_note_base = base_note + scaleB[note_index];}
-            else if(scale == 2){current_note_base = base_note + scaleC[note_index];}
-            any_pad_touched = true;
+    static auto was_note_touched = false;
+    auto is_note_touched = false;
+    for (auto pad = kFirstNotePad; pad <= kLastNotePad; ++pad) {
+        is_note_touched = touch_.IsTouched(pad);
+        if (is_note_touched) {
+            note_base_ = 16 + scales[scale_idx_][pad - kFirstNotePad];
             break;
         }
     }
 
-    if (any_pad_touched && !pad_was_touched) {
-        engine_->NoteOn();
-        if(!drone_mode){hw.SetLed(true);}
-    } else if (!any_pad_touched && pad_was_touched) {
-        engine_->NoteOff();
-        if(!drone_mode){hw.SetLed(false);}
-    }
+    if (is_note_touched && !was_note_touched) engine_->NoteOn();
+    else if (!is_note_touched && was_note_touched) engine_->NoteOff();
     
-    pad_was_touched = any_pad_touched;
+    hw.SetLed(is_note_touched || drone_mode_);
 
+    was_note_touched = is_note_touched;
+    zero_was_touched = zero_touched;
+    two_was_touched = two_touched;
 }
 
 void Controls::initADCs(DaisySeed &hw) {
@@ -385,3 +290,50 @@ void Controls::registerParams(Engine &engine) {
     params_.Register(Parameter::EnvelopeShape, 0.0f, 0.0f, 1.0f,
         std::bind(&Engine::SetShape, &engine, _1)); 
 }
+
+#ifdef USB_MIDI
+float norm(const uint8_t value) {
+    return std::clamp(static_cast<float>(value) / 127.f, 0.f, 1.f);
+};
+void Controls::processMIDI() {
+    midi_.Listen();
+    while(midi_.HasEvents()) {
+        auto msg = midi_.PopEvent();
+        switch(msg.type) {
+            case NoteOn: {
+                auto note_msg = msg.AsNoteOn();
+                note_base_ = note_msg.note;
+                engine_->NoteOn();
+                break;
+            }
+            case NoteOff: {
+                engine_->NoteOff();
+                break;
+            }
+            case ControlChange: {
+                auto ctrl_msg = msg.AsControlChange();
+                auto num = ctrl_msg.control_number;
+                auto val = norm(ctrl_msg.value);
+                using P = Parameter;
+                auto p = P::None;
+                     if (num == 7)  { p = P::OutputVolume; }
+                else if (num == 12) { p = P::ReverbDecay; val = ftension(val, -3.0f); }
+                else if (num == 70) { p = P::Frequency; }
+                else if (num == 72) { p = P::EnvelopeShape; }
+                else if (num == 74) { p = P::FeedbackLPFCutoff; }
+                else if (num == 75) { p = P::FeedbackGain; }
+                else if (num == 76) { p = P::FeedbackBody; }
+                else if (num == 77) { p = P::InputVolume; }
+                else if (num == 81) { p = P::FeedbackHPFCutoff; }
+                else if (num == 91) { p = P::ReverbMix; }
+                else if (num == 123) { engine_->NoteOff(); }
+
+                if (p != Parameter::None) params_.UpdateNormalized(p, val);
+
+                break;
+            }
+            default: break;
+        }
+    }
+};
+#endif
