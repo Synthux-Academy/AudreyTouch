@@ -1,6 +1,4 @@
 #pragma once
-#ifndef IFS_FEEDBACK_SYNTH_ENGINE_H
-#define IFS_FEEDBACK_SYNTH_ENGINE_H
 
 #include <memory>
 #include <daisysp.h>
@@ -92,5 +90,3 @@ class Engine {
 
 }
 }
-
-#endif

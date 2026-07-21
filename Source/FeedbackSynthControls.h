@@ -1,6 +1,4 @@
 #pragma once
-#ifndef INFS_FEEDBACKSYNTHCONTROLS_H
-#define INFS_FEEDBACKSYNTHCONTROLS_H
 
 #if !DEBUG
 #define USB_MIDI
@@ -108,5 +106,3 @@ private:
 
 }
 }
-
-#endif
