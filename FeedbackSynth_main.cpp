@@ -2,6 +2,10 @@
 #include "FeedbackSynthEngine.h"
 #include "FeedbackSynthControls.h"
 
+const char* USBD_MANUFACTURER_STRING = "Synthux";
+const char* USBD_PRODUCT_STRING_HS = "AudreyTouch";
+const char* USBD_PRODUCT_STRING_FS = "AudreyTouch";
+
 using namespace infrasonic;
 using namespace daisy;
 using namespace daisysp;
