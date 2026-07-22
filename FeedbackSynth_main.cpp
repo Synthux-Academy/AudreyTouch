@@ -20,9 +20,6 @@ static Limiter limiter[2];
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
 {
-
-    controls.UpdateAudioRate(hw);
-    controls.Process();
     for (size_t i=0; i<size; i++) {
         engine.Process(IN_L[i], OUT_L[i], OUT_R[i]);
     }
@@ -48,7 +45,7 @@ int main(void)
 
     while (1)
     {
-        controls.UpdateLoopRate(hw);
+        controls.Process(hw);
         hw.DelayMs(4);
     }
 }

@@ -3,7 +3,7 @@ TARGET = AudreyTouch
 USE_DAISYSP_LGPL = 1
 
 # Enabling DEBUG disables USB MIDI
-# DEBUG = 1
+DEBUG = 1
 
 LIBDAISY_DIR = lib/libDaisy
 DAISYSP_DIR = lib/DaisySP

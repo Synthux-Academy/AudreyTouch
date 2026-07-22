@@ -23,19 +23,11 @@ public:
 
     void Init(daisy::DaisySeed &hw, Engine &engine);
 
-    void UpdateAudioRate(daisy::DaisySeed &hw);
-    void UpdateLoopRate(daisy::DaisySeed &hw);
-
-    void Process() {
-        params_.Process();
-    }
-
+    void Process(DaisySeed &hw);
 
 private:
 
     Engine* engine_;
-
-    static const size_t kNumAdcChannels = 11;
 
     // Touch sensor integration
     synthux::simpletouch::Touch touch_;
@@ -76,10 +68,16 @@ private:
     void processTouch(DaisySeed&);
     float bodyValue(const float param);
 
+    daisy::UiEventQueue _ui_queue;
+    daisy::PotMonitor<synthux::simpletouch::Touch, 8> _pot_monitor;
+    void processUIQueue();
+
     #ifdef USB_MIDI
     daisy::MidiUsbHandler midi_;
     void processMIDI();
     #endif
+
+    void applyFrequency();
 
     synthux::MValue env_;
     synthux::MValue body_;
@@ -89,13 +87,11 @@ private:
     static constexpr uint8_t kMinNote = 16;
     static constexpr uint8_t kMaxNote = 88;
 
-    float body_knob_val_ = 0.f;
-    float body_knob_ = 0.f;
-    float volume_knob_ = 0.f;
+    float freq_offset_norm_;
 
-    uint8_t scale_idx_ = 0;
-    uint8_t note_base_ = 40;
-    int8_t octave_shift_ = 0;
+    uint8_t scale_idx_      = 0;
+    uint8_t note_base_      = 40;
+    int8_t octave_shift_    = 0;
 
     bool octave_down_was_ = true;
     bool octave_up_was_ = true;
