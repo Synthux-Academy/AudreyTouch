@@ -9,6 +9,19 @@ Audrey II is a horrorscape synthesizer used by film composers, sound designers a
 [🎛️ Order Simple Touch](https://www.synthux.academy/simple-synth/touch2)
 
 ---
+## MIDI Implementation
+### CC
+- 7 - Output volume
+- 12 - Reverb decay
+- 70 - Frequency
+- 72 - Envelope shape
+- 74 - LP filter cutoff
+- 75 - Feedback gain
+- 76 - Feedback body
+- 77 - Input volume;
+- 81 - HP filter cutoff
+- 91 - Reverb mix
+
 
 📘 **Manual coming soon!**
 
