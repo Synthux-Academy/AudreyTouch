@@ -25,12 +25,22 @@ public:
 
     void Process(DaisySeed &hw);
 
+    void ProcessAudioRate();
+
 private:
 
     Engine* engine_;
 
     // Touch sensor integration
     synthux::simpletouch::Touch touch_;
+
+    enum class BodyValueMode: uint8_t {
+        None        = 0,
+        FastLFO,
+        Direct,
+        SlowLFO
+    };
+    BodyValueMode body_value_mode_ = BodyValueMode::None;
 
 
     /// Identifies a parameter of the synth engine
@@ -49,6 +59,8 @@ private:
         OutputVolume,       // 10
         InputVolume,        // 11
         EnvelopeShape,
+        LFOFrequency,
+        LFODistribution,
         count,
         None
     };
@@ -60,13 +72,13 @@ private:
     GPIO scale_switch_b_;
     GPIO lfo_switch_a_;
     GPIO lfo_switch_b_;
-    daisysp::Oscillator osc_;
 
-    void initADCs(daisy::DaisySeed &hw);
-    void registerParams(Engine &engine);
+    void initADCs(daisy::DaisySeed&);
+    void registerParams(Engine&);
 
+    void processSwitches();
     void processTouch(DaisySeed&);
-    float bodyValue(const float param);
+    void processBodyValue(const float);
 
     daisy::UiEventQueue _ui_queue;
     daisy::PotMonitor<synthux::simpletouch::Touch, 8> _pot_monitor;

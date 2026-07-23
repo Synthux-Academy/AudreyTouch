@@ -6,6 +6,7 @@
 #include "EchoDelay.h"
 #include "KarplusString.h"
 #include "env.h"
+#include <random>
 
 #ifdef __arm__
 #include <dev/sdram.h>
@@ -46,6 +47,10 @@ class Engine {
         void SetShape(const float shape);
         void DroneMode(bool mode);
 
+        void SetBodyLFOOn(const bool);
+        void SetLFOFrequency(const float);
+        void SetLFODistribution(const float);
+
         void Process(float in, float &outL, float &outR);
 
     private:
@@ -75,6 +80,12 @@ class Engine {
 
         LPF12 fb_lpf_;
         HPF12 fb_hpf_;
+
+        daisysp::Oscillator lfo_;
+        std::random_device dice_;
+        std::uniform_real_distribution<float> dist_;
+        float lfo_freq_;
+        bool lfo_on_;
 
         using VerbPtr = std::unique_ptr<daisysp::ReverbSc>;
         VerbPtr verb_;

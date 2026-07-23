@@ -32,11 +32,6 @@ void Controls::Init(DaisySeed &hw, Engine &engine) {
     touch_.Init(hw);
     registerParams(engine);
 
-    osc_.Init(48000.0f);
-    osc_.SetAmp(1.f);
-    osc_.SetWaveform(daisysp::Oscillator::WAVE_RAMP);
-    osc_.SetFreq(1.0f);
-
     #ifdef USB_MIDI
     daisy::MidiUsbHandler::Config midi_cfg;
     midi_.Init(midi_cfg);
@@ -50,47 +45,14 @@ void Controls::Process(DaisySeed &hw) { //pads are updated at a slower rate
     processMIDI();
     #endif
     processTouch(hw);
+    processSwitches();   
     processUIQueue();
-    params_.Process();
 }
 
-enum class BodyValueMode: uint8_t {
-    None        = 0,
-    FastLFO,
-    Direct,
-    SlowLFO
-};
-float Controls::bodyValue(const float param)
+void Controls::ProcessAudioRate()
 {
-    std::bitset<2> lfo_sw;
-    lfo_sw.set(0, lfo_switch_a_.Read());
-    lfo_sw.set(1, lfo_switch_b_.Read());
-    auto mode = static_cast<BodyValueMode>(lfo_sw.to_ulong());
-
     
-    auto lfo_slew_rate = .08f;
-    switch (mode) {
-        case BodyValueMode::FastLFO: {
-            osc_.SetFreq(1.f + ((1.f - param) * 7.f));
-            break;
-        }
-        case BodyValueMode::SlowLFO: {
-            osc_.SetFreq(.01f + ((1.0f - param) * .5f));
-            lfo_slew_rate = .0001f; //lower is slower
-            break;
-        }
-        default: return param;
-    }
-
-    auto curr_osc = osc_.Process();
-    static auto prev_osc = 0.f, held_val = 0.f, smoothed_val = 0.f;
-    if ((prev_osc < 0.f && curr_osc >= 0.f) || (prev_osc > 0.f && curr_osc <= 0.f)) {
-        held_val = daisy::Random::GetFloat(param - (.05f + (.07f * (1.f - param))), param + (.05f + (.07f * (1.0f - param))));
-    }
-    smoothed_val += lfo_slew_rate * (held_val - smoothed_val);
-    prev_osc = curr_osc;
-
-    return std::clamp(smoothed_val, 0.f, 1.f);
+    params_.Process();
 }
 
 static constexpr uint8_t kFirstNotePad  = 3;
@@ -152,6 +114,16 @@ void Controls::processTouch(DaisySeed& hw)
     two_was_touched = two_touched;
 }
 
+void Controls::processSwitches()
+{
+    std::bitset<2> lfo_sw;
+    lfo_sw.set(0, lfo_switch_a_.Read());
+    lfo_sw.set(1, lfo_switch_b_.Read());
+    auto mode = static_cast<BodyValueMode>(lfo_sw.to_ulong());
+    engine_->SetBodyLFOOn(mode == BodyValueMode::FastLFO || mode == BodyValueMode::SlowLFO);
+    body_value_mode_ = mode;
+}
+
 template <typename T>
 inline T map(const T& x,
              const T& in_min,
@@ -170,7 +142,7 @@ void Controls::processUIQueue()
         if (event.type == UiEventQueue::Event::EventType::potMoved) {
             auto pot = static_cast<P>(event.asPotMoved.id);
             auto val = event.asPotMoved.newPosition;
-            val = map(val, .02f, .95f, 0.f, 1.f);
+            val = std::clamp(map(val, .02f, .95f, 0.f, 1.f), 0.f, 1.f);
             switch (pot) {
                 case P::s30: {
                     params_.UpdateNormalized(Parameter::FeedbackGain, val);
@@ -210,13 +182,35 @@ void Controls::processUIQueue()
                     env_.process(val, controlling_env_);
                     if (env_.apply()) params_.UpdateNormalized(Parameter::EnvelopeShape, env_.value());
                     body_.process(val, !controlling_env_);
-                    if (body_.apply()) val = 1.0f - body_.value();
-                    params_.UpdateNormalized(Parameter::FeedbackBody, bodyValue(val));
+                    if (body_.apply()) processBodyValue(1.0f - body_.value());
                     break;
                 }
             }
         }
     }
+}
+void Controls::processBodyValue(const float value)
+{
+    Parameter p;
+    float v;
+    switch (body_value_mode_) {
+        case BodyValueMode::FastLFO: {
+            p = Parameter::LFOFrequency;
+            v = 1.f + ((1.f - value) * 7.f);
+            break;
+        }
+        case BodyValueMode::SlowLFO: {
+            p = Parameter::LFOFrequency;
+            v = .01f + ((1.0f - value) * .5f);
+            break;
+        }
+        default: {
+            p = Parameter::FeedbackBody;
+            v = value;
+        }
+    }
+    params_.UpdateNormalized(p, v); 
+    params_.UpdateNormalized(Parameter::LFODistribution, value);
 }
 
 void Controls::applyFrequency()
@@ -269,6 +263,13 @@ void Controls::registerParams(Engine &engine) {
     // Envelope shape
     params_.Register(Parameter::EnvelopeShape, 0.0f, 0.0f, 1.0f,
         std::bind(&Engine::SetShape, &engine, _1)); 
+
+    // LFO frequency
+    params_.Register(Parameter::LFOFrequency, 1.0f, 0.01f, 7.0f,
+        std::bind(&Engine::SetLFOFrequency, &engine, _1)); 
+
+    params_.Register(Parameter::LFODistribution, .5f, 0.f, 1.0f,
+        std::bind(&Engine::SetLFODistribution, &engine, _1)); 
 }
 
 #ifdef USB_MIDI
