@@ -63,18 +63,18 @@ Have a look at the flow chart embedded into the faceplate design to understand h
 
 ---
 ## MIDI Implementation
-### CC
+
+Receives on all channels, understands NoteOn/Off and CCs:
+
 - 7 - Output volume
 - 12 - Reverb decay
 - 70 - Frequency
-- 72 - Envelope shape
 - 74 - LP filter cutoff
 - 75 - Feedback gain
 - 76 - Feedback body
-- 77 - Input volume;
+- 77 - Input volume
 - 81 - HP filter cutoff
 - 91 - Reverb mix
-
 
 ## Installing Audrey II Firmware on Simple Touch
 - Download the [latest .bin file](https://github.com/Synthux-Academy/AudreyTouch/releases/latest/download/AudreyTouch.bin) from the [repository releases section.](https://github.com/Synthux-Academy/AudreyTouch/releases/) 
