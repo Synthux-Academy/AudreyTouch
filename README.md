@@ -69,6 +69,7 @@ Receives on all channels, understands NoteOn/Off and CCs:
 - 7 - Output volume
 - 12 - Reverb decay
 - 70 - Frequency
+- 72 - Envelope shape
 - 74 - LP filter cutoff
 - 75 - Feedback gain
 - 76 - Feedback body
