@@ -2,6 +2,10 @@
 #include "FeedbackSynthEngine.h"
 #include "FeedbackSynthControls.h"
 
+const char* USBD_MANUFACTURER_STRING = "Synthux";
+const char* USBD_PRODUCT_STRING_HS = "AudreyTouch";
+const char* USBD_PRODUCT_STRING_FS = "AudreyTouch";
+
 using namespace infrasonic;
 using namespace daisy;
 using namespace daisysp;
@@ -16,9 +20,7 @@ static Limiter limiter[2];
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
 {
-
-    controls.UpdateAudioRate(hw);
-    controls.Process();
+    controls.ProcessAudioRate();
     for (size_t i=0; i<size; i++) {
         engine.Process(IN_L[i], OUT_L[i], OUT_R[i]);
     }
@@ -44,7 +46,7 @@ int main(void)
 
     while (1)
     {
-        controls.UpdateSlowRate(hw);
+        controls.Process(hw);
         hw.DelayMs(4);
     }
 }

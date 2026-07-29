@@ -15,7 +15,10 @@ void Engine::Init(const float sample_rate) {
   _env.SetMode(synthux::Envelope::Mode::ASR);
   _env.SetShape(0.0f);
 
-  
+  lfo_.Init(sample_rate);
+  lfo_.SetAmp(1.f);
+  lfo_.SetWaveform(daisysp::Oscillator::WAVE_RAMP);
+  lfo_.SetFreq(1.0f);
 
   echo_delay_[0] = EchoDelayPtr(SDRAM::allocate<ED>());
   echo_delay_[1] = EchoDelayPtr(SDRAM::allocate<ED>());
@@ -96,28 +99,79 @@ void Engine::SetEchoDelaySendAmount(const float echo_send) {
   echo_send_ = echo_send;
 }
 
-void Engine::SetReverbMix(const float mix) {
+void Engine::SetReverbMix(const float mix) 
+{
   verb_mix_ = fclamp(mix, 0.0f, 1.0f);
 }
 
-void Engine::SetReverbFeedback(const float time) { verb_->SetFeedback(time); }
+void Engine::SetReverbFeedback(const float time) 
+{ 
+  verb_->SetFeedback(time); 
+}
 
-void Engine::SetOutputLevel(const float level) { output_level_ = level; }
+void Engine::SetOutputLevel(const float level) 
+{ 
+  output_level_ = level; 
+}
 
-void Engine::SetInputLevel(const float level) { input_level_ = level; }
+void Engine::SetInputLevel(const float level) 
+{ 
+  input_level_ = level; 
+}
 
-void Engine::NoteOn() {_env.Trigger();}
+void Engine::NoteOn() 
+{ 
+  _env.Trigger(); 
+}
 
-void Engine::NoteOff() {_env.Release();}
+void Engine::NoteOff() 
+{ 
+  _env.Release();
+}
 
-void Engine::DroneMode(bool mode) {drone = mode;}
+void Engine::DroneMode(bool mode) 
+{
+  drone = mode;
+}
 
-void Engine::SetShape(const float shape) {_env.SetShape(shape);}
+void Engine::SetShape(const float shape) 
+{ 
+  _env.SetShape(shape); 
+}
+
+void Engine::SetBodyLFOOn(const bool on)
+{
+  lfo_on_ = on;
+}
+
+void Engine::SetLFOFrequency(const float hz)
+{
+  lfo_freq_ = hz;
+  lfo_.SetFreq(hz);
+}
+
+void Engine::SetLFODistribution(const float norm)
+{
+  auto dev = .05f + (.07f * (1.f - norm));
+  dist_ = std::uniform_real_distribution<float>(norm - dev, norm + dev);
+}
 
 void Engine::Process(float in, float &outL, float &outR) {
   // --- Update audio-rate-smoothed control params ---
-
+  
   fonepole(fb_delay_samp_, fb_delay_samp_target_, fb_delay_smooth_coef_);
+
+  // --- Process LFO ---
+  
+  auto curr_lfo = lfo_.Process();
+  static auto prev_lfo = 0.f, held_val = 0.f, smoothed_val = 0.f;
+  if ((prev_lfo < 0.f && curr_lfo >= 0.f) || (prev_lfo > 0.f && curr_lfo <= 0.f)) held_val = dist_(dice_);
+  auto lfo_slew_rate = lfo_freq_ < 1.f ? .0001f : .08f;
+  smoothed_val += lfo_slew_rate * (held_val - smoothed_val);
+  prev_lfo = curr_lfo;
+
+  auto mapped_val = std::clamp(smoothed_val * smoothed_val * (0.1f - 0.001f) + 0.001f, 0.f, 1.f);
+  if (lfo_on_) SetFeedbackDelay(mapped_val);
 
   // --- Process Samples ---
 
