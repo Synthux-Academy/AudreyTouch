@@ -1,12 +1,15 @@
 #pragma once
-#ifndef INFS_FEEDBACKSYNTHCONTROLS_H
-#define INFS_FEEDBACKSYNTHCONTROLS_H
 
-#include <daisy.h>
+#if !DEBUG
+#define USB_MIDI
+#endif
+
 #include <daisy_seed.h>
+
 #include "FeedbackSynthEngine.h"
 #include "ParameterRegistry.h"
 #include "simple-daisy-touch.h"
+#include "mvalue.h"
 
 namespace infrasonic {
 namespace FeedbackSynth {
@@ -20,24 +23,24 @@ public:
 
     void Init(daisy::DaisySeed &hw, Engine &engine);
 
-    void UpdateAudioRate(daisy::DaisySeed &hw);
-    void UpdateSlowRate(daisy::DaisySeed &hw);
+    void Process(DaisySeed &hw);
 
-    void UpdateFrequencyFromTouch();
-
-    void Process() {
-        params_.Process();
-    }
-
+    void ProcessAudioRate();
 
 private:
 
     Engine* engine_;
 
-    static const size_t kNumAdcChannels = 11;
-
     // Touch sensor integration
     synthux::simpletouch::Touch touch_;
+
+    enum class BodyValueMode: uint8_t {
+        None        = 0,
+        FastLFO,
+        Direct,
+        SlowLFO
+    };
+    BodyValueMode body_value_mode_ = BodyValueMode::None;
 
 
     /// Identifies a parameter of the synth engine
@@ -55,57 +58,59 @@ private:
         EchoDelayFeedback,  // 9
         OutputVolume,       // 10
         InputVolume,        // 11
-        EnvelopeShape
+        EnvelopeShape,
+        LFOFrequency,
+        LFODistribution,
+        count,
+        None
     };
 
     using Parameters = ParameterRegistry<Parameter>;
 
     Parameters params_;
-    daisy::Switch del_sw_;
-    GPIO scale_switch_a;
-    GPIO scale_switch_b;
-    GPIO lfo_switch_a;
-    GPIO lfo_switch_b;
-    daisysp::Oscillator _osc;
-    
+    GPIO scale_switch_a_;
+    GPIO scale_switch_b_;
+    GPIO lfo_switch_a_;
+    GPIO lfo_switch_b_;
 
-    void initADCs(daisy::DaisySeed &hw);
-    void registerParams(Engine &engine);
+    void initADCs(daisy::DaisySeed&);
+    void registerParams(Engine&);
 
-    int scale = 0;
-    bool drone_mode = false;
-    float prev_val_env = 0.0f;
-    float prev_val_body = 0.001f;
-    bool controlling_env = false;
-    float prev_val_input = 0.5f;
-    float prev_val_output = 0.5f;
-    bool controlling_OutputVol = false;
-    float freq_shift = 0.0f;
-    int range = 0;
-    float octave_shift = 0.0f;
-    bool octave_down_was = true;
-    bool octave_up_was = true;
-    bool octave_down_pad = false;
-    bool octave_up_pad = false;
-    float body_knob_val = 0.0f;
-    float body_val = 0.0f;
-    float lfo_depth = 0.0f;
-    float note = 35.0f;
-    float current_note_base = 40.0f;
-    float min_note = 16.0f;
-    float max_note = 88.0f;
-    float body_knob = 0.0f;
-    float volume_knob = 0.0f;
+    void processSwitches();
+    void processTouch(DaisySeed&);
+    void processBodyValue(const float);
 
-    bool env_knob_catched = false;
-    bool vol_knob_catched = false;
-    float env_target_val = 0.0f;
-    float vol_target_val = 0.0f;
-    float slewRate = 0.08f; 
+    daisy::UiEventQueue _ui_queue;
+    daisy::PotMonitor<synthux::simpletouch::Touch, 8> _pot_monitor;
+    void processUIQueue();
 
+    #ifdef USB_MIDI
+    daisy::MidiUsbHandler midi_;
+    void processMIDI();
+    #endif
+
+    void applyFrequency();
+
+    synthux::MValue env_;
+    synthux::MValue body_;
+    synthux::MValue in_vol_;
+    synthux::MValue out_vol_;
+
+    static constexpr uint8_t kMinNote = 16;
+    static constexpr uint8_t kMaxNote = 88;
+
+    float freq_offset_norm_;
+
+    uint8_t scale_idx_      = 0;
+    uint8_t note_base_      = 40;
+    int8_t octave_shift_    = 0;
+
+    bool octave_down_was_ = true;
+    bool octave_up_was_ = true;
+    bool drone_mode_ = false;
+    bool controlling_env_ = false;
+    bool controlling_output_vol_ = false;
 };
 
 }
 }
-
-#endif
