@@ -13,13 +13,13 @@ Download the [Binary file](https://github.com/Synthux-Academy/AudreyTouch/releas
 
 ## Manual
 
-Audrey Touch uses the same core concept as the larger Audrey II; the main driving factor is the feedback loop, with controls to manipulate that flow. (The delay section of Audrey II is not implemented.) Whereas Audrey II firmware does have audio input, the standard build does not include that hardware, although it can be modded by simply adding the input jack.
-
-The idea is to excite the loop in varying amounts to create drifting horrorscapes. By inputting audio, you can also use that audio as a driving force, which allows Audrey Touch to function as an effect for any audio source. Try using anything from percussive drum loops to melodies to voice.
+Audrey Touch excites a feedback loop to create drifting horrorscapes, and can also be driven by external audio to work as an effect on drum loops, melodies, or voice.
 
 Have a look at the flow chart embedded into the faceplate design to understand how parts interact.
 
 ![Audrey faceplate side by side with Simple Touch PCB](Faceplate/SynthuxAudreyTouch_joined.jpg)
+
+For background on the instrument, how it differs from Audrey II, the full MIDI CC map, and a step-by-step workflow, see **[manual.md](manual.md)**.
 
 ### Controls
 
@@ -32,12 +32,12 @@ Have a look at the flow chart embedded into the faceplate design to understand h
 #### Knobs:
 
 - S30 - Main control, use this to set a trigger threshold
-- S31 - Input gain, turn down to disable and only use internal exciter
-- S32 - Dry / Wet, how much does the sound desintegrate
+- S31 - Input gain, turn down to disable and only use internal exciter (hold P10 to instead control output volume)
+- S32 - Dry / Wet, how much does the sound disintegrate
 - S33 - Size, space out the reverb
 - S34 - Low Pass, use in conjunction with high pass to narrow down the range
 - S35 - High Pass
-- S37 (right fader) - filter mix
+- S37 (right fader) - filter mix (hold P11 to instead control envelope shape)
 - S36 (left fader) - frequency
 
 #### Pads
@@ -48,6 +48,10 @@ Have a look at the flow chart embedded into the faceplate design to understand h
 - P00 - tap for octave down
 - P02 - tap for octave up
 
+**Scale**:
+
+- P11 + P00 - Hold P11 and tap P00 to cycle through the three pad scales
+
 **Drone**: 
 
 - P11 + P02 - Hold P11 and tap P02 to toggle drone 
@@ -56,10 +60,14 @@ Have a look at the flow chart embedded into the faceplate design to understand h
 
 - P11 + S37 - Hold P11 and move the right fader to change the envelope (same envelope as Touch Bass)
 
+**Output volume**:
+
+- P10 + S31 - Hold P10 and turn S31 to control output volume instead of input gain
+
 #### Switches:
 
-- The left switch changes scales of the pads. 
-- The right switch controls modulation over the right fader. Keep it down for no modulation, center for sine and up for S&H with slew. 
+- The left switch is currently unused and free. It used to change pad scales, but that's now done via the P11 + P00 pad combo instead (see Scale under Pads above).
+- The right switch controls modulation over the right fader. Keep it down for no modulation (direct body control); the other two positions both drive a randomized sample-and-hold-style modulator (not a literal sine wave) at different rates. See [manual.md](manual.md#under-the-hood-controls--the-signal-path) for how this works.
 
 ---
 ## MIDI Implementation
@@ -76,6 +84,8 @@ Receives on all channels, understands NoteOn/Off and CCs:
 - 77 - Input volume
 - 81 - HP filter cutoff
 - 91 - Reverb mix
+
+See **[manual.md](manual.md#quick-reference-controls--midi-cc-map)** for how these CCs map onto the knobs/faders above, including which ones aren't a 1:1 match and the pad-hold combos not printed on the faceplate.
 
 ## Installing Audrey II Firmware on Simple Touch
 - Download the [latest .bin file](https://github.com/Synthux-Academy/AudreyTouch/releases/latest/download/AudreyTouch.bin) from the [repository releases section.](https://github.com/Synthux-Academy/AudreyTouch/releases/) 
